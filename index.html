@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AniDex – Upcoming Anime</title>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       HOJA DE ESTILOS
+       Asegúrate de que style.css esté en la misma carpeta que este
+       archivo, o ajusta la ruta aquí:
+  ════════════════════════════════════════════════════════════════ -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="widget-wrapper">
+
+  <!-- ── ENCABEZADO ── -->
+  <header class="widget-header">
+    <div class="header-left">
+      <div class="header-icon">📺</div>
+      <h1 class="header-title">Upcoming <span>Anime</span></h1>
+    </div>
+    <span class="season-badge" id="season-label">Primavera 2026</span>
+  </header>
+
+  <!-- ── CONTROLES DE FILTRO ── -->
+  <div class="controls">
+    <span class="filter-label">Ver:</span>
+    <button class="filter-btn active" data-filter="all">Todos</button>
+    <button class="filter-btn" data-filter="tv">TV</button>
+    <button class="filter-btn" data-filter="movie">Películas</button>
+    <button class="filter-btn" data-filter="ova">OVA / Especiales</button>
+  </div>
+
+  <!-- ── GRID PRINCIPAL ──
+       Las tarjetas se inyectan aquí dinámicamente desde JavaScript.
+  ── -->
+  <div class="anime-grid" id="anime-grid">
+    <!-- Skeleton placeholders mientras carga -->
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-poster"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line xshort"></div>
+      </div>
+    </div>
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-poster"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line xshort"></div>
+      </div>
+    </div>
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-poster"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line xshort"></div>
+      </div>
+    </div>
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-poster"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line xshort"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PIE DE PÁGINA ── -->
+  <footer class="widget-footer">
+    <p class="footer-source">
+      Datos por <a href="https://jikan.moe" target="_blank" rel="noopener">Jikan API</a>
+      (MyAnimeList) · Actualización automática al cargar
+    </p>
+    <span class="footer-count" id="footer-count"></span>
+  </footer>
+
+</div><!-- /widget-wrapper -->
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIGURACIÓN DE LA API
+   ───────────────────────────────────────────────────────────────────
+   Jikan es una API pública y gratuita basada en MyAnimeList.
+   No necesita clave (API key).
+
+   URL BASE:
+     https://api.jikan.moe/v4
+
+   ENDPOINT PARA TEMPORADA ACTUAL (auto-detecta la temporada del día):
+     https://api.jikan.moe/v4/seasons/now
+
+   ENDPOINT PARA UNA TEMPORADA ESPECÍFICA:
+     https://api.jikan.moe/v4/seasons/{AÑO}/{temporada}
+     Ejemplo: https://api.jikan.moe/v4/seasons/2026/spring
+
+   ⬇ SI QUIERES CAMBIAR LA TEMPORADA MANUALMENTE, edita esta variable:
+═══════════════════════════════════════════════════════════════════ */
+const API_CONFIG = {
+  /*
+   * Opciones para `mode`:
+   *   "current"  → detecta automáticamente la temporada en curso ✅ (recomendado)
+   *   "specific" → usa AÑO y SEASON definidos abajo
+   */
+  mode: "current",
+
+  /* Solo se usan si mode = "specific" */
+  year:   2026,
+  season: "spring",   // "winter" | "spring" | "summer" | "fall"
+
+  /* Cuántos ánimes mostrar por página (máx. 25 por llamada a Jikan) */
+  limit: 24,
+
+  /* Ordenar por: "score" | "members" | "title" */
+  sortBy: "members",
+};
+/* ═══════════════════════════════════════════════════════════════════
+   FIN DE CONFIGURACIÓN — No es necesario editar debajo de esta línea
+═══════════════════════════════════════════════════════════════════ */
+
+
+/* ── Variables de estado ── */
+let allAnime  = [];   // Lista completa cargada de la API
+let activeFilter = "all";
+
+/* ── Utilidades ── */
+const grid       = document.getElementById("anime-grid");
+const footerCount = document.getElementById("footer-count");
+const seasonLabel = document.getElementById("season-label");
+
+/* Formatea una fecha ISO en "Lun 07 Abr" */
+function formatDate(isoString) {
+  if (!isoString) return "Fecha por confirmar";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d)) return "Fecha por confirmar";
+    return d.toLocaleDateString("es-MX", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    });
+  } catch {
+    return "Fecha por confirmar";
+  }
+}
+
+/* Normaliza el tipo de anime para los filtros */
+function normalizeType(type) {
+  if (!type) return "other";
+  const t = type.toLowerCase();
+  if (t === "tv") return "tv";
+  if (t === "movie") return "movie";
+  if (["ova", "ona", "special", "music"].includes(t)) return "ova";
+  return "other";
+}
+
+/* Icono SVG de calendario (inline, sin dependencias externas) */
+const calendarIcon = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M5 1v3M11 1v3M1 7h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+</svg>`;
+
+/* ── Renderizado de tarjetas ── */
+function renderCards(list) {
+  if (!list.length) {
+    grid.innerHTML = `
+      <div class="state-container">
+        <p class="state-title">Sin resultados</p>
+        <p class="state-sub">No hay ánimes para este filtro en la temporada actual.</p>
+      </div>`;
+    footerCount.textContent = "";
+    return;
+  }
+
+  footerCount.textContent = `${list.length} títulos mostrados`;
+
+  grid.innerHTML = list.map((anime, i) => {
+    const imgSrc  = anime.images?.jpg?.large_image_url
+                  || anime.images?.jpg?.image_url
+                  || "";
+    const title   = anime.title_english || anime.title || "Sin título";
+    const date    = formatDate(anime.aired?.from);
+    const score   = anime.score ? anime.score.toFixed(1) : null;
+    const genres  = (anime.genres || []).slice(0, 2).map(g => g.name);
+    const malUrl  = anime.url || "#";
+
+    /* Delay escalonado para la animación de entrada */
+    const delay = Math.min(i * 40, 600);
+
+    return `
+      <a class="anime-card"
+         href="${malUrl}"
+         target="_blank"
+         rel="noopener noreferrer"
+         title="${title}"
+         style="animation-delay: ${delay}ms; text-decoration: none; color: inherit;">
+
+        <div class="card-poster">
+          ${imgSrc
+            ? `<img src="${imgSrc}" alt="Portada de ${title}" loading="lazy" />`
+            : `<div class="poster-placeholder">📺</div>`}
+          ${score ? `<span class="score-badge">${score}</span>` : ""}
+        </div>
+
+        <div class="card-body">
+          <p class="card-title">${title}</p>
+          <div class="card-date">
+            ${calendarIcon}
+            ${date}
+          </div>
+          ${genres.length
+            ? `<div class="card-genres">
+                ${genres.map(g => `<span class="genre-tag">${g}</span>`).join("")}
+               </div>`
+            : ""}
+        </div>
+
+      </a>`;
+  }).join("");
+}
+
+/* ── Filtrado ── */
+function applyFilter() {
+  const filtered = activeFilter === "all"
+    ? allAnime
+    : allAnime.filter(a => normalizeType(a.type) === activeFilter);
+  renderCards(filtered);
+}
+
+/* ── Estado de error ── */
+function showError(message) {
+  grid.innerHTML = `
+    <div class="state-container">
+      <p style="font-size:2rem">⚠️</p>
+      <p class="state-title">No se pudo cargar la temporada</p>
+      <p class="state-sub">${message}</p>
+      <button class="retry-btn" onclick="loadAnime()">Reintentar</button>
+    </div>`;
+  footerCount.textContent = "";
+}
+
+/* ── Carga de datos desde la API ── */
+async function loadAnime() {
+  /* Mostrar skeletons */
+  grid.innerHTML = Array.from({ length: 8 }, () => `
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-poster"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line xshort"></div>
+      </div>
+    </div>`).join("");
+  footerCount.textContent = "";
+
+  /* ─────────────────────────────────────────────────────────────────
+     CONSTRUCCIÓN DE LA URL
+     Si cambias la temporada, ajusta API_CONFIG al inicio del script.
+  ───────────────────────────────────────────────────────────────── */
+  let apiUrl;
+  if (API_CONFIG.mode === "specific") {
+    apiUrl = `https://api.jikan.moe/v4/seasons/${API_CONFIG.year}/${API_CONFIG.season}`;
+  } else {
+    apiUrl = "https://api.jikan.moe/v4/seasons/now";
+  }
+
+  /* Parámetros adicionales de la query */
+  const params = new URLSearchParams({
+    limit: API_CONFIG.limit,
+  });
+  apiUrl += `?${params.toString()}`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      headers: { "Accept": "application/json" }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const json = await response.json();
+
+    if (!json.data || !Array.isArray(json.data)) {
+      throw new Error("Respuesta inesperada de la API.");
+    }
+
+    /* Ordenar según configuración */
+    let data = json.data;
+    if (API_CONFIG.sortBy === "score") {
+      data.sort((a, b) => (b.score || 0) - (a.score || 0));
+    } else if (API_CONFIG.sortBy === "members") {
+      data.sort((a, b) => (b.members || 0) - (a.members || 0));
+    } else {
+      data.sort((a, b) =>
+        (a.title_english || a.title || "").localeCompare(b.title_english || b.title || "")
+      );
+    }
+
+    allAnime = data;
+
+    /* Actualizar label de temporada con los datos reales */
+    if (json.data[0]?.season && json.data[0]?.year) {
+      const seasonNames = {
+        spring: "Primavera", summer: "Verano",
+        fall: "Otoño",       winter: "Invierno"
+      };
+      const sName = seasonNames[json.data[0].season] || json.data[0].season;
+      seasonLabel.textContent = `${sName} ${json.data[0].year}`;
+      /* Ícono según temporada */
+      const icons = { spring: "🌸", summer: "☀️", fall: "🍂", winter: "❄️" };
+      seasonLabel.style.setProperty("--season-icon",
+        `"${icons[json.data[0].season] || "📺"}"`);
+    }
+
+    applyFilter();
+
+  } catch (err) {
+    console.error("[AniDex Widget] Error al cargar:", err);
+    showError(`${err.message}. Revisa tu conexión o vuelve a intentarlo.`);
+  }
+}
+
+/* ── Event listeners de filtros ── */
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activeFilter = btn.dataset.filter;
+    applyFilter();
+  });
+});
+
+/* ── Iniciar al cargar la página ── */
+document.addEventListener("DOMContentLoaded", loadAnime);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,446 @@
+/* ==========================================================
+   AniDex – Upcoming Anime Widget · style.css
+   Colores principales: Royal Blue (#4169E1) sobre fondo claro
+   Fuentes: 'Plus Jakarta Sans' (display) + 'DM Sans' (body)
+   ========================================================== */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Tokens de color ── */
+:root {
+  --royal-blue:      #4169E1;
+  --royal-blue-dark: #2f52c8;
+  --royal-blue-soft: #e8edfb;
+  --royal-blue-mid:  #c3cefc;
+  --bg:              #f4f5f9;
+  --surface:         #ffffff;
+  --surface-hover:   #f9faff;
+  --text-primary:    #1a1d2e;
+  --text-secondary:  #5a5f7a;
+  --text-muted:      #9499b5;
+  --border:          #e4e7f5;
+  --tag-bg:          #eef0fc;
+  --tag-text:        #3d52c4;
+  --shadow-card:     0 2px 12px rgba(65, 105, 225, 0.08),
+                     0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-hover:    0 8px 28px rgba(65, 105, 225, 0.18),
+                     0 2px 8px rgba(0, 0, 0, 0.08);
+  --radius-card:     14px;
+  --radius-sm:       8px;
+  --radius-tag:      20px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body / Contenedor principal ── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* ── Widget wrapper (para embeber en Notion) ── */
+.widget-wrapper {
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 24px 28px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--royal-blue);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.header-title span {
+  color: var(--royal-blue);
+}
+
+.season-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--royal-blue-soft);
+  color: var(--royal-blue);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-tag);
+  border: 1px solid var(--royal-blue-mid);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.season-badge::before {
+  content: '🌸';
+  font-size: 0.85em;
+}
+
+/* ── Controles / filtros ── */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 4px;
+}
+
+.filter-btn {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-tag);
+  padding: 5px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--royal-blue);
+  color: var(--royal-blue);
+  background: var(--royal-blue-soft);
+}
+
+.filter-btn.active {
+  background: var(--royal-blue);
+  color: #fff;
+  border-color: var(--royal-blue);
+  font-weight: 600;
+}
+
+/* ── Grid de tarjetas ── */
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 880px) {
+  .anime-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 620px) {
+  .anime-grid { grid-template-columns: repeat(2, 1fr); }
+  .widget-wrapper { padding: 16px; }
+  .header-title { font-size: 1.1rem; }
+}
+
+/* ── Tarjeta individual ── */
+.anime-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  border: 1.5px solid var(--border);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.anime-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--royal-blue);
+  background: var(--surface-hover);
+}
+
+/* ── Poster / imagen ── */
+.card-poster {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--royal-blue-soft);
+}
+
+.card-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.anime-card:hover .card-poster img {
+  transform: scale(1.04);
+}
+
+/* Overlay de score */
+.score-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(26, 29, 46, 0.82);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.score-badge::before { content: '★'; color: #fbbf24; }
+
+/* Placeholder cuando no hay imagen */
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--royal-blue-soft), var(--royal-blue-mid));
+  font-size: 2.5rem;
+}
+
+/* ── Cuerpo de la tarjeta ── */
+.card-body {
+  padding: 12px 12px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Fecha de estreno ── */
+.card-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--royal-blue);
+  margin-top: 2px;
+}
+
+.card-date svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* ── Tags de género ── */
+.card-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.genre-tag {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-tag);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* ── Barra de acento inferior en hover ── */
+.anime-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--royal-blue);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  transform: scaleX(0);
+  transition: transform 0.22s ease;
+}
+.anime-card:hover::after { transform: scaleX(1); }
+
+/* ── Estado de carga ── */
+.state-container {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--royal-blue-mid);
+  border-top-color: var(--royal-blue);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.state-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.state-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  max-width: 280px;
+}
+
+.retry-btn {
+  margin-top: 6px;
+  background: var(--royal-blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-tag);
+  padding: 8px 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.12s ease;
+}
+.retry-btn:hover { background: var(--royal-blue-dark); transform: scale(1.03); }
+
+/* ── Esqueleto de carga (skeleton cards) ── */
+.skeleton-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+}
+
+.skeleton-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  background: linear-gradient(90deg, var(--royal-blue-soft) 25%, #dde3fa 50%, var(--royal-blue-soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeleton-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.skeleton-line {
+  height: 11px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--royal-blue-soft) 25%, #dde3fa 50%, var(--royal-blue-soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.skeleton-line.short { width: 60%; }
+.skeleton-line.medium { width: 80%; }
+.skeleton-line.xshort { width: 40%; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Footer ── */
+.widget-footer {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-source {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.footer-source a {
+  color: var(--royal-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+.footer-source a:hover { text-decoration: underline; }
+
+.footer-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Animación de entrada de tarjetas ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.anime-card {
+  animation: fadeSlideUp 0.35s ease both;
+}

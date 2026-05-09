@@ -3,42 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Upcoming Anime · Primavera 2026</title>
-
-  <!-- ══════════════════════════════════════════════════════════
-       HOJA DE ESTILOS
-       Asegúrate de que style.css esté en la misma carpeta.
-  ═══════════════════════════════════════════════════════════ -->
+  <title>Upcoming Anime</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="widget">
 
-  <!-- ── ENCABEZADO ── -->
+  <!-- HEADER: [logo] UPCOMING anime                (Primavera 2026) -->
   <header class="header">
-    <h1 class="header-title">Upcoming <em>Anime</em></h1>
-    <span class="season-tag" id="season-label">Primavera 2026</span>
+
+    <!-- Cuadro del logo — reemplaza el texto por tu imagen cuando la tengas:
+         <img src="tu-dibujo.png" style="width:100%;height:100%;object-fit:cover;"> -->
+    <!-- DESPUÉS -->
+    <div class="logo-box">
+    <img src="IMG_5431.jpeg" alt="Logo" style="width:100%;height:100%;object-fit:cover;">
+    </div>
+
+    <div class="header-title-block">
+      <span class="title-main">UPCOMING</span>
+      <span class="title-sub">anime</span>
+    </div>
+
+    <!-- Capsula ovalada derecha -->
+    <span class="season-capsule" id="season-label">Primavera 2026</span>
+
   </header>
 
-  <!-- ── FILTROS ── -->
-  <nav class="filters" aria-label="Filtrar por tipo">
+  <!-- FILTROS cuadrados -->
+  <nav class="filters">
     <span class="filters-label">Ver:</span>
     <button class="filter-btn active" data-filter="all">Todos</button>
     <button class="filter-btn" data-filter="tv">TV</button>
     <button class="filter-btn" data-filter="movie">Peliculas</button>
-    <button class="filter-btn" data-filter="ova">OVA / Especiales</button>
+    <button class="filter-btn" data-filter="ova">Ova/Especiales</button>
   </nav>
 
-  <!-- ── GRID ──
-       Las tarjetas se insertan aquí por JavaScript.
-  ── -->
+  <!-- GRID (tarjetas inyectadas por JS) -->
   <div class="grid" id="grid" role="list"></div>
 
-  <!-- ── PIE ── -->
   <footer class="footer">
     <span class="footer-src">
       Datos via <a href="https://jikan.moe" target="_blank" rel="noopener">Jikan API</a>
-      (MyAnimeList)
     </span>
     <span class="footer-count" id="footer-count"></span>
   </footer>
@@ -46,95 +51,60 @@
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════════════
+/* ================================================================
    CONFIGURACION DE LA API
-   ──────────────────────────────────────────────────────────────
-   Jikan es gratuita y no requiere API key.
+   URL base: https://api.jikan.moe/v4
+   Sin API key requerida.
 
-   ENDPOINTS DISPONIBLES:
-     Temporada actual (auto):  https://api.jikan.moe/v4/seasons/now
-     Temporada especifica:     https://api.jikan.moe/v4/seasons/{AÑO}/{season}
-     Ejemplo Primavera 2026:   https://api.jikan.moe/v4/seasons/2026/spring
-
-   PARA CAMBIAR LA TEMPORADA:
-     Cambia `mode` a "specific" y ajusta `year` y `season`.
-   Valores validos de season: "winter" | "spring" | "summer" | "fall"
-══════════════════════════════════════════════════════════════ */
+   mode "specific" = temporada fija  |  "current" = temporada actual auto
+   Para cambiar: edita year y season abajo.
+   Valores: "winter" | "spring" | "summer" | "fall"
+================================================================ */
 const CFG = {
-  mode:   "specific",   // "current" = automatico | "specific" = manual
+  mode:   "specific",
   year:   2026,
   season: "spring",
-  limit:  24,           // maximo de tarjetas a mostrar (max 25 por llamada)
-  sortBy: "members",    // "members" | "score" | "title"
+  limit:  24,
+  sortBy: "members",
 };
-/* ══════════════════════════════════════════════════════════════
-   FIN CONFIGURACION
-══════════════════════════════════════════════════════════════ */
+/* FIN CONFIGURACION */
 
-
-/* ── SVG Icons (inline, sin emojis ni dependencias externas) ── */
+/* SVG icons (sin emojis) */
 const ICON = {
-  /* Icono de television para placeholder */
-  tv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-        <rect x="2" y="7" width="20" height="14" rx="2"/>
-        <path d="M8 3l4 4 4-4"/>
-       </svg>`,
-
-  /* Icono de calendario para fechas */
-  cal: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-         <rect x="1.5" y="3" width="13" height="11" rx="1.5"/>
-         <path d="M5 1.5v3M11 1.5v3M1.5 7h13"/>
-        </svg>`,
-
-  /* Icono de estrella para score */
+  tv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 3l4 4 4-4"/></svg>`,
+  cal: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.5" y="3" width="13" height="11" rx="1.5"/><path d="M5 1.5v3M11 1.5v3M1.5 7h13"/></svg>`,
   star: `<svg viewBox="0 0 12 12"><path d="M6 1l1.3 2.7H10L7.8 5.5l.9 2.8L6 6.7 3.3 8.3l.9-2.8L2 3.7h2.7z" fill="currentColor"/></svg>`,
-
-  /* Icono de alerta para error */
-  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-           <path d="M12 9v4M12 17h.01"/>
-           <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          </svg>`,
-
-  /* Icono de busqueda vacia */
-  empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-           <circle cx="11" cy="11" r="8"/>
-           <path d="M21 21l-4.35-4.35M8 11h6"/>
-          </svg>`,
+  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
+  empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M8 11h6"/></svg>`,
 };
 
+const SEASON_ES = { spring:"Primavera", summer:"Verano", fall:"Otono", winter:"Invierno" };
 
-/* ── Estado ── */
-let allAnime     = [];
-let activeFilter = "all";
-
-const grid        = document.getElementById("grid");
+let allAnime = [], activeFilter = "all";
+const grid = document.getElementById("grid");
 const footerCount = document.getElementById("footer-count");
 const seasonLabel = document.getElementById("season-label");
-
-/* ── Helpers ── */
-const SEASON_ES = { spring:"Primavera", summer:"Verano", fall:"Otono", winter:"Invierno" };
 
 function fmtDate(iso) {
   if (!iso) return "Por confirmar";
   try {
     const d = new Date(iso);
-    if (isNaN(d)) return "Por confirmar";
-    return d.toLocaleDateString("es-MX", { weekday:"short", day:"2-digit", month:"short" });
+    return isNaN(d) ? "Por confirmar"
+      : d.toLocaleDateString("es-MX", { weekday:"short", day:"2-digit", month:"short" });
   } catch { return "Por confirmar"; }
 }
 
 function normType(t) {
   if (!t) return "other";
   const s = t.toLowerCase();
-  if (s === "tv")   return "tv";
+  if (s === "tv") return "tv";
   if (s === "movie") return "movie";
   if (["ova","ona","special","music"].includes(s)) return "ova";
   return "other";
 }
 
-/* ── Skeletons ── */
 function showSkeletons(n = 8) {
-  grid.innerHTML = Array.from({ length: n }, () => `
+  grid.innerHTML = Array.from({length: n}, () => `
     <div class="sk-card" aria-hidden="true">
       <div class="sk-poster"></div>
       <div class="sk-body">
@@ -146,58 +116,37 @@ function showSkeletons(n = 8) {
   footerCount.textContent = "";
 }
 
-/* ── Renderizar tarjetas ── */
 function renderCards(list) {
   if (!list.length) {
-    grid.innerHTML = `
-      <div class="state">
-        ${ICON.empty}
-        <p class="state-title">Sin resultados</p>
-        <p class="state-sub">No hay titulos para este filtro en la temporada actual.</p>
-      </div>`;
+    grid.innerHTML = `<div class="state">${ICON.empty}<p class="state-title">Sin resultados</p><p class="state-sub">No hay titulos para este filtro.</p></div>`;
     footerCount.textContent = "";
     return;
   }
-
   footerCount.textContent = `${list.length} titulos`;
-
   grid.innerHTML = list.map((a, i) => {
-    const img    = a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || "";
-    const title  = a.title_english || a.title || "Sin titulo";
-    const date   = fmtDate(a.aired?.from);
-    const score  = a.score ? a.score.toFixed(1) : null;
+    const img   = a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || "";
+    const title = a.title_english || a.title || "Sin titulo";
+    const date  = fmtDate(a.aired?.from);
+    const score = a.score ? a.score.toFixed(1) : null;
     const genres = (a.genres || []).slice(0, 2).map(g => g.name);
-    const url    = a.url || "#";
-    const delay  = Math.min(i * 35, 500);
-
+    const url   = a.url || "#";
+    const delay = Math.min(i * 35, 500);
     return `
-      <a class="card"
-         href="${url}"
-         target="_blank"
-         rel="noopener noreferrer"
-         role="listitem"
-         title="${title}"
-         style="animation-delay:${delay}ms">
+      <a class="card" href="${url}" target="_blank" rel="noopener noreferrer"
+         role="listitem" title="${title}" style="animation-delay:${delay}ms">
         <div class="card-poster">
-          ${img
-            ? `<img src="${img}" alt="${title}" loading="lazy" />`
-            : `<div class="poster-ph">${ICON.tv}</div>`}
-          ${score
-            ? `<span class="score-badge">${ICON.star}${score}</span>`
-            : ""}
+          ${img ? `<img src="${img}" alt="${title}" loading="lazy">` : `<div class="poster-ph">${ICON.tv}</div>`}
+          ${score ? `<span class="score-badge">${ICON.star}${score}</span>` : ""}
         </div>
         <div class="card-body">
           <p class="card-title">${title}</p>
           <div class="card-date">${ICON.cal}${date}</div>
-          ${genres.length
-            ? `<div class="card-genres">${genres.map(g => `<span class="tag">${g}</span>`).join("")}</div>`
-            : ""}
+          ${genres.length ? `<div class="card-genres">${genres.map(g=>`<span class="tag">${g}</span>`).join("")}</div>` : ""}
         </div>
       </a>`;
   }).join("");
 }
 
-/* ── Aplicar filtro activo ── */
 function applyFilter() {
   const filtered = activeFilter === "all"
     ? allAnime
@@ -205,62 +154,46 @@ function applyFilter() {
   renderCards(filtered);
 }
 
-/* ── Mostrar error ── */
 function showError(msg) {
-  grid.innerHTML = `
-    <div class="state">
-      ${ICON.alert}
-      <p class="state-title">Error al cargar</p>
-      <p class="state-sub">${msg}</p>
-      <button class="retry-btn" onclick="loadAnime()">Reintentar</button>
-    </div>`;
+  grid.innerHTML = `<div class="state">${ICON.alert}<p class="state-title">Error al cargar</p><p class="state-sub">${msg}</p><button class="retry-btn" onclick="loadAnime()">Reintentar</button></div>`;
   footerCount.textContent = "";
 }
 
-/* ── Cargar datos de la API ── ────────────────────────────────
-   URL BASE: https://api.jikan.moe/v4
+/* ================================================================
+   CARGA DE DATOS
+   URL de la API construida desde CFG arriba.
    Para cambiar temporada, edita el objeto CFG al inicio del script.
-──────────────────────────────────────────────────────────── */
+================================================================ */
 async function loadAnime() {
   showSkeletons(8);
-
-  /* Construccion de la URL segun configuracion */
-  const base = "https://api.jikan.moe/v4";
   const path = CFG.mode === "specific"
     ? `/seasons/${CFG.year}/${CFG.season}`
     : "/seasons/now";
-
-  const url = `${base}${path}?limit=${CFG.limit}`;
-
+  const url = `https://api.jikan.moe/v4${path}?limit=${CFG.limit}`;
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!Array.isArray(json.data)) throw new Error("Respuesta inesperada de la API");
+    if (!Array.isArray(json.data)) throw new Error("Respuesta inesperada");
 
-    /* Ordenar */
     let data = json.data;
-    if (CFG.sortBy === "score")        data.sort((a,b) => (b.score||0)-(a.score||0));
-    else if (CFG.sortBy === "members") data.sort((a,b) => (b.members||0)-(a.members||0));
+    if (CFG.sortBy === "score")        data.sort((a,b) => (b.score||0) - (a.score||0));
+    else if (CFG.sortBy === "members") data.sort((a,b) => (b.members||0) - (a.members||0));
     else data.sort((a,b) => (a.title_english||a.title||"").localeCompare(b.title_english||b.title||""));
 
     allAnime = data;
 
-    /* Actualizar badge de temporada */
-    const first = data[0];
-    if (first?.season && first?.year) {
-      seasonLabel.textContent = `${SEASON_ES[first.season] || first.season} ${first.year}`;
-    }
+    const f = data[0];
+    if (f?.season && f?.year)
+      seasonLabel.textContent = `${SEASON_ES[f.season] || f.season} ${f.year}`;
 
     applyFilter();
-
-  } catch (err) {
+  } catch(err) {
     console.error("[AniDex]", err);
-    showError(err.message + ". Verifica tu conexion o reintenta.");
+    showError(err.message);
   }
 }
 
-/* ── Listeners de filtros ── */
 document.querySelectorAll(".filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -270,7 +203,6 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
-/* ── Arranque ── */
 document.addEventListener("DOMContentLoaded", loadAnime);
 </script>
 </body>

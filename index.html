@@ -9,27 +9,21 @@
 <body>
 <div class="widget">
 
-  <!-- HEADER: [logo] UPCOMING anime                (Primavera 2026) -->
+  <!-- HEADER -->
   <header class="header">
-
-    <!-- Cuadro del logo — reemplaza el texto por tu imagen cuando la tengas:
-         <img src="tu-dibujo.png" style="width:100%;height:100%;object-fit:cover;"> -->
-    <!-- DESPUÉS -->
-    <div class="logo-box">
-    <img src="IMG_5431.jpeg" alt="Logo" style="width:100%;height:100%;object-fit:cover;">
-    </div>
+    <!-- Logo: reemplaza el texto por tu imagen cuando quieras:
+         <img src="IMG_5431.jpeg" style="width:100%;height:100%;object-fit:cover;"> -->
+    <div class="logo-box">TU<br>LOGO</div>
 
     <div class="header-title-block">
       <span class="title-main">UPCOMING</span>
       <span class="title-sub">anime</span>
     </div>
 
-    <!-- Capsula ovalada derecha -->
     <span class="season-capsule" id="season-label">Primavera 2026</span>
-
   </header>
 
-  <!-- FILTROS cuadrados -->
+  <!-- FILTROS -->
   <nav class="filters">
     <span class="filters-label">Ver:</span>
     <button class="filter-btn active" data-filter="all">Todos</button>
@@ -38,7 +32,7 @@
     <button class="filter-btn" data-filter="ova">Ova/Especiales</button>
   </nav>
 
-  <!-- GRID (tarjetas inyectadas por JS) -->
+  <!-- GRID -->
   <div class="grid" id="grid" role="list"></div>
 
   <footer class="footer">
@@ -54,11 +48,12 @@
 /* ================================================================
    CONFIGURACION DE LA API
    URL base: https://api.jikan.moe/v4
-   Sin API key requerida.
 
-   mode "specific" = temporada fija  |  "current" = temporada actual auto
-   Para cambiar: edita year y season abajo.
-   Valores: "winter" | "spring" | "summer" | "fall"
+   mode "specific" = temporada fija
+   mode "current"  = temporada actual automatica
+
+   Para cambiar temporada, edita year y season:
+   Valores de season: "winter" | "spring" | "summer" | "fall"
 ================================================================ */
 const CFG = {
   mode:   "specific",
@@ -67,86 +62,258 @@ const CFG = {
   limit:  24,
   sortBy: "members",
 };
-/* FIN CONFIGURACION */
 
-/* SVG icons (sin emojis) */
-const ICON = {
-  tv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 3l4 4 4-4"/></svg>`,
-  cal: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.5" y="3" width="13" height="11" rx="1.5"/><path d="M5 1.5v3M11 1.5v3M1.5 7h13"/></svg>`,
-  star: `<svg viewBox="0 0 12 12"><path d="M6 1l1.3 2.7H10L7.8 5.5l.9 2.8L6 6.7 3.3 8.3l.9-2.8L2 3.7h2.7z" fill="currentColor"/></svg>`,
-  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
-  empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M8 11h6"/></svg>`,
+/* ================================================================
+   ZONA HORARIA
+   Los horarios de Jikan vienen en JST (Asia/Tokyo, UTC+9).
+   Se convierten automaticamente a Hora de Mexico (America/Mexico_City)
+   usando la API Intl del navegador, que respeta el horario de verano.
+================================================================ */
+
+const DIAS_EN = {
+  Mondays: 1, Tuesdays: 2, Wednesdays: 3,
+  Thursdays: 4, Fridays: 5, Saturdays: 6, Sundays: 0,
 };
 
-const SEASON_ES = { spring:"Primavera", summer:"Verano", fall:"Otono", winter:"Invierno" };
+const DIAS_ES_SHORT = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
 
-let allAnime = [], activeFilter = "all";
-const grid = document.getElementById("grid");
+const SEASON_ES = {
+  spring: "Primavera", summer: "Verano",
+  fall:   "Otono",     winter: "Invierno",
+};
+
+/**
+ * Convierte dia + hora JST al siguiente estreno en horario de Mexico.
+ * Ejemplo: ("Saturdays", "23:00") -> "Sab 09:00"
+ */
+function jstToMexico(broadcastDay, broadcastTime) {
+  if (!broadcastDay || !broadcastTime) return null;
+
+  const targetDayNum = DIAS_EN[broadcastDay];
+  if (targetDayNum === undefined) return null;
+
+  const [hJST, mJST] = broadcastTime.split(":").map(Number);
+
+  // Calcular cuantos dias faltan para el proximo dia de emision
+  const now      = new Date();
+  const todayDay = now.getDay();
+  let daysAhead  = (targetDayNum - todayDay + 7) % 7;
+  if (daysAhead === 0) daysAhead = 7; // siempre mostrar el PROXIMO
+
+  const nextAir = new Date(now);
+  nextAir.setDate(now.getDate() + daysAhead);
+
+  // Convertir hora JST (UTC+9) a UTC, luego mostrar en Mexico City
+  // JST = UTC + 9, asi que: UTC = hJST - 9
+  nextAir.setUTCHours(hJST - 9, mJST, 0, 0);
+
+  // Formatear en horario de Mexico (maneja DST automaticamente)
+  const fmt = new Intl.DateTimeFormat("es-MX", {
+    timeZone:  "America/Mexico_City",
+    weekday:   "short",
+    hour:      "2-digit",
+    minute:    "2-digit",
+    hour12:    false,
+  });
+
+  const parts = fmt.formatToParts(nextAir);
+  const wd    = parts.find(p => p.type === "weekday")?.value  || "";
+  const hr    = parts.find(p => p.type === "hour")?.value     || "00";
+  const min   = parts.find(p => p.type === "minute")?.value   || "00";
+
+  // Capitalizar primer letra del dia
+  const wdCap = wd.charAt(0).toUpperCase() + wd.slice(1);
+  return `${wdCap} ${hr}:${min}`;
+}
+
+/* ================================================================
+   ICONOS SVG — sin emojis
+   El color de los iconos de acento usa var(--accent) del CSS.
+================================================================ */
+const ICON = {
+  // Televisor (placeholder de poster)
+  tv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M8 3l4 4 4-4"/>
+       </svg>`,
+
+  // Estrella (score)
+  star: `<svg viewBox="0 0 12 12">
+          <path d="M6 1l1.3 2.7H10L7.8 5.5l.9 2.8L6 6.7 3.3 8.3l.9-2.8L2 3.7h2.7z"
+                fill="currentColor"/>
+         </svg>`,
+
+  // Pelicula (episodios)
+  film: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+          <path d="M7 2v20M17 2v20M2 12h20M2 7h5M17 7h5M2 17h5M17 17h5"/>
+         </svg>`,
+
+  // Reloj (proximo estreno)
+  clock: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+           stroke-linejoin="round">
+           <circle cx="12" cy="12" r="10"/>
+           <path d="M12 6v6l4 2"/>
+          </svg>`,
+
+  // Alerta (error)
+  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M12 9v4M12 17h.01"/>
+           <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3
+                    L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>`,
+
+  // Busqueda vacia
+  empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+           <circle cx="11" cy="11" r="8"/>
+           <path d="M21 21l-4.35-4.35M8 11h6"/>
+          </svg>`,
+};
+
+/* ================================================================
+   ESTADO GLOBAL
+================================================================ */
+let allAnime     = [];
+let activeFilter = "all";
+
+const grid        = document.getElementById("grid");
 const footerCount = document.getElementById("footer-count");
 const seasonLabel = document.getElementById("season-label");
 
-function fmtDate(iso) {
-  if (!iso) return "Por confirmar";
-  try {
-    const d = new Date(iso);
-    return isNaN(d) ? "Por confirmar"
-      : d.toLocaleDateString("es-MX", { weekday:"short", day:"2-digit", month:"short" });
-  } catch { return "Por confirmar"; }
-}
-
+/* ================================================================
+   HELPERS
+================================================================ */
 function normType(t) {
   if (!t) return "other";
   const s = t.toLowerCase();
-  if (s === "tv") return "tv";
+  if (s === "tv")    return "tv";
   if (s === "movie") return "movie";
-  if (["ova","ona","special","music"].includes(s)) return "ova";
+  if (["ova", "ona", "special", "music"].includes(s)) return "ova";
   return "other";
 }
 
+/* Formato de episodios: "Ep. 12" o "Ep. — / 12" si esta en emision */
+function fmtEpisodes(anime) {
+  const total  = anime.episodes;
+  const airing = anime.airing;
+
+  if (!total && !airing) return null;
+  if (!total && airing)  return "En emision";
+  if (airing)            return `En emision / ${total} eps`;
+  return `${total} eps`;
+}
+
+/* ================================================================
+   SKELETONS
+================================================================ */
 function showSkeletons(n = 8) {
-  grid.innerHTML = Array.from({length: n}, () => `
+  grid.innerHTML = Array.from({ length: n }, () => `
     <div class="sk-card" aria-hidden="true">
       <div class="sk-poster"></div>
       <div class="sk-body">
         <div class="sk-line w80"></div>
-        <div class="sk-line w55"></div>
-        <div class="sk-line w40"></div>
+        <div class="sk-line w60"></div>
+        <div class="sk-line w45"></div>
       </div>
     </div>`).join("");
   footerCount.textContent = "";
 }
 
+/* ================================================================
+   RENDERIZADO DE TARJETAS
+================================================================ */
 function renderCards(list) {
   if (!list.length) {
-    grid.innerHTML = `<div class="state">${ICON.empty}<p class="state-title">Sin resultados</p><p class="state-sub">No hay titulos para este filtro.</p></div>`;
+    grid.innerHTML = `
+      <div class="state">
+        ${ICON.empty}
+        <p class="state-title">Sin resultados</p>
+        <p class="state-sub">No hay titulos para este filtro en la temporada.</p>
+      </div>`;
     footerCount.textContent = "";
     return;
   }
+
   footerCount.textContent = `${list.length} titulos`;
+
   grid.innerHTML = list.map((a, i) => {
-    const img   = a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || "";
-    const title = a.title_english || a.title || "Sin titulo";
-    const date  = fmtDate(a.aired?.from);
-    const score = a.score ? a.score.toFixed(1) : null;
+    const img     = a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || "";
+    const title   = a.title_english || a.title || "Sin titulo";
+    const score   = a.score ? a.score.toFixed(1) : null;
+    const url     = a.url || "#";
+    const eps     = fmtEpisodes(a);
+    const delay   = Math.min(i * 32, 480);
+
+    // Convertir horario de Jikan (JST) a Mexico City
+    const broadcast    = a.broadcast || {};
+    const nextMX       = jstToMexico(broadcast.day, broadcast.time);
+    const hasTime      = !!nextMX;
+
     const genres = (a.genres || []).slice(0, 2).map(g => g.name);
-    const url   = a.url || "#";
-    const delay = Math.min(i * 35, 500);
+
     return `
-      <a class="card" href="${url}" target="_blank" rel="noopener noreferrer"
-         role="listitem" title="${title}" style="animation-delay:${delay}ms">
+      <a class="card"
+         href="${url}"
+         target="_blank"
+         rel="noopener noreferrer"
+         role="listitem"
+         title="${title}"
+         style="animation-delay:${delay}ms">
+
+        <!-- POSTER -->
         <div class="card-poster">
-          ${img ? `<img src="${img}" alt="${title}" loading="lazy">` : `<div class="poster-ph">${ICON.tv}</div>`}
-          ${score ? `<span class="score-badge">${ICON.star}${score}</span>` : ""}
+          ${img
+            ? `<img src="${img}" alt="${title}" loading="lazy">`
+            : `<div class="poster-ph">${ICON.tv}</div>`}
+          ${score
+            ? `<span class="score-badge" style="color:var(--score-txt)">
+                 ${ICON.star}${score}
+               </span>`
+            : ""}
         </div>
+
+        <!-- CUERPO -->
         <div class="card-body">
+
+          <!-- Titulo -->
           <p class="card-title">${title}</p>
-          <div class="card-date">${ICON.cal}${date}</div>
-          ${genres.length ? `<div class="card-genres">${genres.map(g=>`<span class="tag">${g}</span>`).join("")}</div>` : ""}
+
+          <!-- Episodios: icono de pelicula + formato -->
+          ${eps ? `
+            <div class="card-eps" style="color:var(--txt-2)">
+              <span style="color:var(--accent)">${ICON.film}</span>
+              ${eps}
+            </div>` : ""}
+
+          <!-- Proximo estreno en horario de Mexico -->
+          <div class="card-next ${hasTime ? "" : "unknown"}">
+            ${ICON.clock}
+            ${hasTime
+              ? `Proximo: ${nextMX} MX`
+              : "Horario por confirmar"}
+          </div>
+
+          <!-- Generos -->
+          ${genres.length
+            ? `<div class="card-genres">
+                ${genres.map(g => `<span class="tag">${g}</span>`).join("")}
+               </div>`
+            : ""}
+
         </div>
       </a>`;
   }).join("");
 }
 
+/* ================================================================
+   FILTRADO
+================================================================ */
 function applyFilter() {
   const filtered = activeFilter === "all"
     ? allAnime
@@ -154,46 +321,73 @@ function applyFilter() {
   renderCards(filtered);
 }
 
+/* ================================================================
+   ERROR
+================================================================ */
 function showError(msg) {
-  grid.innerHTML = `<div class="state">${ICON.alert}<p class="state-title">Error al cargar</p><p class="state-sub">${msg}</p><button class="retry-btn" onclick="loadAnime()">Reintentar</button></div>`;
+  grid.innerHTML = `
+    <div class="state">
+      ${ICON.alert}
+      <p class="state-title">Error al cargar</p>
+      <p class="state-sub">${msg}</p>
+      <button class="retry-btn" onclick="loadAnime()">Reintentar</button>
+    </div>`;
   footerCount.textContent = "";
 }
 
 /* ================================================================
    CARGA DE DATOS
-   URL de la API construida desde CFG arriba.
-   Para cambiar temporada, edita el objeto CFG al inicio del script.
+   URL base: https://api.jikan.moe/v4
+   Para cambiar la temporada, edita el objeto CFG al inicio del script.
 ================================================================ */
 async function loadAnime() {
   showSkeletons(8);
+
   const path = CFG.mode === "specific"
     ? `/seasons/${CFG.year}/${CFG.season}`
     : "/seasons/now";
+
   const url = `https://api.jikan.moe/v4${path}?limit=${CFG.limit}`;
+
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const json = await res.json();
-    if (!Array.isArray(json.data)) throw new Error("Respuesta inesperada");
+    if (!Array.isArray(json.data)) throw new Error("Respuesta inesperada de la API");
 
     let data = json.data;
-    if (CFG.sortBy === "score")        data.sort((a,b) => (b.score||0) - (a.score||0));
-    else if (CFG.sortBy === "members") data.sort((a,b) => (b.members||0) - (a.members||0));
-    else data.sort((a,b) => (a.title_english||a.title||"").localeCompare(b.title_english||b.title||""));
+
+    // Ordenar
+    if (CFG.sortBy === "score")
+      data.sort((a, b) => (b.score || 0) - (a.score || 0));
+    else if (CFG.sortBy === "members")
+      data.sort((a, b) => (b.members || 0) - (a.members || 0));
+    else
+      data.sort((a, b) =>
+        (a.title_english || a.title || "").localeCompare(b.title_english || b.title || "")
+      );
 
     allAnime = data;
 
-    const f = data[0];
-    if (f?.season && f?.year)
-      seasonLabel.textContent = `${SEASON_ES[f.season] || f.season} ${f.year}`;
+    // Actualizar badge de temporada
+    const first = data[0];
+    if (first?.season && first?.year) {
+      const sName = SEASON_ES[first.season] || first.season;
+      seasonLabel.textContent = `${sName} ${first.year}`;
+    }
 
     applyFilter();
-  } catch(err) {
+
+  } catch (err) {
     console.error("[AniDex]", err);
     showError(err.message);
   }
 }
 
+/* ================================================================
+   FILTROS — event listeners
+================================================================ */
 document.querySelectorAll(".filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -203,6 +397,7 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
 
+/* Arranque */
 document.addEventListener("DOMContentLoaded", loadAnime);
 </script>
 </body>

@@ -1,190 +1,498 @@
-/* AniDex - Upcoming Anime Widget - style.css v3
-   Replica boceto IMG_0426: logo cuadrado + Caveat + capsula oval + filtros cuadrados
-   Tema: prefers-color-scheme  |  Dia: #c8d5e2  |  Noche: #191919
-*/
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap');
+/* ================================================================
+   AniDex · Upcoming Anime Widget — style.css v4
+   Autor   : Emily
+   Fuentes : Caveat (header) + Outfit (cuerpo)
+   ================================================================
 
-/* MODO DIA */
+   VARIABLES DE PERSONALIZACIÓN
+   Cambia estos valores para ajustar la estética del widget.
+   ================================================================ */
+
 :root {
-  --blue:       #4169E1;  --blue-dim:  #3457c8;
-  --blue-soft:  #dce5fc;  --blue-mid:  #a8bcf8;
-  --bg:         #c8d5e2;  --surface:   #ffffff;
-  --surface-2:  #f0f4fb;  --border:    #c4cfe0;
-  --border-btn: #4169E1;
-  --txt-1:      #111827;  --txt-2:     #374151;  --txt-3: #8a96ab;
-  --tag-bg:     #e8effe;  --tag-txt:   #3457c8;
-  --score-bg:   rgba(12,15,28,0.72);
-  --score-txt:  #ffffff;  --score-star:#f59e0b;
-  --sh-card:    0 1px 3px rgba(0,0,0,0.07), 0 2px 10px rgba(65,105,225,0.08);
-  --sh-hover:   0 6px 22px rgba(65,105,225,0.18), 0 2px 6px rgba(0,0,0,0.08);
-  --capsule-bg: #7ba3d8;  --capsule-txt: #ffffff;
-  --radius-card: 12px;    --radius-pill: 99px;
+  /* ── Color de acento principal (iconos, fechas, tags, hover) ── */
+  --accent:          #3E8BFF;
+  --accent-dim:      #2b6fd4;
+  --accent-soft:     rgba(62, 139, 255, 0.10);
+  --accent-mid:      rgba(62, 139, 255, 0.25);
+
+  /* ── Fondos ── */
+  --bg:              #c8d5e2;      /* fondo exterior del widget (modo día) */
+  --surface:         #ffffff;      /* fondo de cada tarjeta */
+  --surface-2:       #f0f4fb;      /* fondo de skeletons / placeholders */
+
+  /* ── Bordes ── */
+  --border:          #c4cfe0;
+  --border-btn:      #3E8BFF;      /* borde de botones de filtro */
+
+  /* ── Texto ── */
+  --txt-1:           #111827;      /* títulos */
+  --txt-2:           #374151;      /* texto secundario */
+  --txt-3:           #8a96ab;      /* texto muted (años, placeholders) */
+
+  /* ── Tags de género ── */
+  --tag-bg:          rgba(62, 139, 255, 0.10);
+  --tag-txt:         #2563c7;
+
+  /* ── Score badge ── */
+  --score-bg:        rgba(10, 14, 28, 0.72);
+  --score-txt:       #ffffff;
+  --score-star:      #f59e0b;
+
+  /* ── Cápsula del header ── */
+  --capsule-bg:      #7ba3d8;
+  --capsule-txt:     #ffffff;
+
+  /* ── Sombras ── */
+  --sh-card:         0 1px 3px rgba(0,0,0,0.07), 0 2px 10px rgba(62,139,255,0.07);
+  --sh-hover:        0 6px 22px rgba(62,139,255,0.18), 0 2px 6px rgba(0,0,0,0.08);
+
+  /* ── Radio ── */
+  --radius-card:     12px;
+  --radius-pill:     99px;
 }
 
-/* MODO NOCHE */
+/* ── MODO NOCHE (fondo #191919 de Notion dark) ── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --blue:       #6b8ef7;  --blue-dim:  #5579f0;
-    --blue-soft:  #1a2145;  --blue-mid:  #253070;
-    --bg:         #191919;  --surface:   #242428;
-    --surface-2:  #2c2c31;  --border:    #333338;
-    --border-btn: #6b8ef7;
-    --txt-1:      #e8e8ea;  --txt-2:     #9ca3af;  --txt-3: #6b7280;
-    --tag-bg:     #1a2145;  --tag-txt:   #7b9bfb;
-    --score-bg:   rgba(0,0,0,0.68);
-    --score-txt:  #f3f4f6;  --score-star:#fbbf24;
-    --sh-card:    0 1px 4px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.4);
-    --sh-hover:   0 6px 22px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.5);
-    --capsule-bg: #1e2e5a;  --capsule-txt: #a8c0f8;
+    --accent:          #5ba3ff;
+    --accent-dim:      #4a8ff0;
+    --accent-soft:     rgba(91, 163, 255, 0.10);
+    --accent-mid:      rgba(91, 163, 255, 0.22);
+
+    --bg:              #191919;
+    --surface:         #242428;
+    --surface-2:       #2c2c31;
+    --border:          #333338;
+    --border-btn:      #5ba3ff;
+
+    --txt-1:           #e8e8ea;
+    --txt-2:           #9ca3af;
+    --txt-3:           #6b7280;
+
+    --tag-bg:          rgba(91,163,255,0.10);
+    --tag-txt:         #7fb3ff;
+
+    --score-bg:        rgba(0,0,0,0.68);
+    --score-txt:       #f3f4f6;
+    --score-star:      #fbbf24;
+
+    --capsule-bg:      #1e2e5a;
+    --capsule-txt:     #a8c0f8;
+
+    --sh-card:         0 1px 4px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.4);
+    --sh-hover:        0 6px 22px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.45);
   }
 }
 
+/* ================================================================
+   RESET
+   ================================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 html, body {
   font-family: 'Outfit', system-ui, sans-serif;
-  background: var(--bg); color: var(--txt-1);
-  font-size: 14px; -webkit-font-smoothing: antialiased; min-height: 100vh;
+  background: var(--bg);
+  color: var(--txt-1);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
-.widget { background: var(--bg); padding: 16px 18px 22px; min-width: 280px; }
+/* ================================================================
+   WIDGET — ocupa todo el ancho disponible (columna de Notion)
+   ================================================================ */
+.widget {
+  background: var(--bg);
+  padding: 14px 16px 20px;
+  min-width: 260px;
+}
 
-/* HEADER */
-.header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+/* ================================================================
+   HEADER
+   ================================================================ */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
 
 .logo-box {
-  width: 58px; height: 58px; min-width: 58px;
-  border-radius: 10px; overflow: hidden;
-  background: var(--surface-2); border: 1.5px dashed var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.48rem; font-weight: 600; color: var(--txt-3);
-  text-align: center; line-height: 1.4; user-select: none;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.46rem;
+  font-weight: 600;
+  color: var(--txt-3);
+  text-align: center;
+  line-height: 1.4;
+  user-select: none;
 }
-/* Para poner tu imagen, reemplaza el texto del .logo-box por:
+/* Para poner tu imagen: reemplaza el texto dentro de .logo-box por:
    <img src="tu-dibujo.png" style="width:100%;height:100%;object-fit:cover;"> */
 
 .header-title-block {
-  flex: 1; display: flex; align-items: baseline; gap: 7px; min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
 }
 
 .title-main {
-  font-family: 'Caveat', cursive; font-size: 2rem; font-weight: 700;
-  color: var(--txt-1); line-height: 1; letter-spacing: 0.5px; white-space: nowrap;
+  font-family: 'Caveat', cursive;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--txt-1);
+  line-height: 1;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 
 .title-sub {
-  font-family: 'Caveat', cursive; font-size: 1.25rem; font-weight: 600;
-  color: var(--txt-2); line-height: 1; white-space: nowrap;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--txt-2);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .season-capsule {
-  flex-shrink: 0; background: var(--capsule-bg); color: var(--capsule-txt);
-  font-family: 'Caveat', cursive; font-size: 0.95rem; font-weight: 700;
-  padding: 5px 16px; border-radius: 99px; white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--capsule-bg);
+  color: var(--capsule-txt);
+  font-family: 'Caveat', cursive;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 99px;
+  white-space: nowrap;
 }
 
-/* FILTROS — cuadrados con borde 1px */
-.filters { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+/* ================================================================
+   FILTROS — cuadrados, borde fino
+   ================================================================ */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 11px;
+  flex-wrap: wrap;
+}
 
 .filters-label {
-  font-family: 'Caveat', cursive; font-size: 1.1rem; font-weight: 700;
-  color: var(--txt-1); margin-right: 2px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--txt-1);
+  margin-right: 2px;
 }
 
 .filter-btn {
-  font-family: 'Outfit', system-ui, sans-serif; font-size: 0.74rem; font-weight: 500;
-  color: var(--txt-2); background: transparent;
-  border: 1px solid var(--border-btn); border-radius: 5px;
-  padding: 5px 13px; cursor: pointer;
-  transition: background 0.13s, color 0.13s; white-space: nowrap; line-height: 1.4;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--txt-2);
+  background: transparent;
+  border: 1px solid var(--border-btn);
+  border-radius: 5px;
+  padding: 4px 11px;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+  white-space: nowrap;
+  line-height: 1.4;
 }
-.filter-btn:hover { background: var(--blue-soft); color: var(--blue); }
-.filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
 
-/* GRID */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px; }
-@media (min-width: 600px) { .grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 599px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 420px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+.filter-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 
-/* TARJETA */
+.filter-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ================================================================
+   GRID — responsive para columna de Notion
+   auto-fill se adapta a cualquier ancho del contenedor
+   ================================================================ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 9px;
+}
+
+/* Fuerza 4 columnas cuando hay espacio */
+@media (min-width: 560px) {
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Columna a mitad de pantalla */
+@media (max-width: 559px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 380px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ================================================================
+   TARJETA
+   ================================================================ */
 .card {
-  background: var(--surface); border-radius: var(--radius-card);
-  border: 1px solid var(--border); box-shadow: var(--sh-card);
-  overflow: hidden; display: flex; flex-direction: column;
-  text-decoration: none; color: inherit; position: relative;
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
   transition: transform 0.17s ease, box-shadow 0.17s ease, border-color 0.17s ease;
   animation: fadeUp 0.28s ease both;
 }
-.card:hover { transform: translateY(-3px); box-shadow: var(--sh-hover); border-color: var(--blue); }
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-hover);
+  border-color: var(--accent);
+}
+
+/* Acento inferior */
 .card::after {
-  content: ''; position: absolute; inset: auto 0 0 0; height: 2px;
-  background: var(--blue); border-radius: 0 0 var(--radius-card) var(--radius-card);
-  transform: scaleX(0); transition: transform 0.17s ease;
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  transform: scaleX(0);
+  transition: transform 0.17s ease;
 }
 .card:hover::after { transform: scaleX(1); }
 
+/* ── Poster ── */
 .card-poster {
-  position: relative; width: 100%; aspect-ratio: 2 / 3;
-  overflow: hidden; background: var(--blue-soft); flex-shrink: 0;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--accent-soft);
+  flex-shrink: 0;
 }
-.card-poster img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.24s ease; }
+
+.card-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.24s ease;
+}
 .card:hover .card-poster img { transform: scale(1.04); }
 
-.poster-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--blue); opacity: 0.3; }
-.poster-ph svg { width: 24px; height: 24px; }
+.poster-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  opacity: 0.3;
+}
+.poster-ph svg { width: 22px; height: 22px; }
 
+/* Score badge */
 .score-badge {
-  position: absolute; top: 5px; right: 5px; background: var(--score-bg); color: var(--score-txt);
-  font-size: 0.62rem; font-weight: 700; padding: 2px 5px; border-radius: 5px;
-  display: flex; align-items: center; gap: 2px;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: var(--score-bg);
+  color: var(--score-txt);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 .score-badge svg { width: 7px; height: 7px; fill: var(--score-star); }
 
-.card-body { padding: 8px 9px 10px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+/* ── Cuerpo de la tarjeta ── */
+.card-body {
+  padding: 7px 8px 9px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
 .card-title {
-  font-size: 0.7rem; font-weight: 600; color: var(--txt-1); line-height: 1.35;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 0.69rem;
+  font-weight: 700;
+  color: var(--txt-1);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.card-date { display: flex; align-items: center; gap: 4px; font-size: 0.63rem; font-weight: 500; color: var(--blue); margin-top: 1px; }
-.card-date svg { width: 9px; height: 9px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+/* Fila de episodios */
+.card-eps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.61rem;
+  font-weight: 500;
+  color: var(--txt-2);
+}
 
-.card-genres { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; padding-top: 4px; }
-.tag { font-size: 0.58rem; font-weight: 600; color: var(--tag-txt); background: var(--tag-bg); border-radius: var(--radius-pill); padding: 1px 6px; white-space: nowrap; }
+.card-eps svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
 
-/* ESTADOS */
-.state { grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 16px; gap: 8px; text-align: center; }
-.state svg { width: 28px; height: 28px; color: var(--txt-3); }
-.state-title { font-size: 0.82rem; font-weight: 600; color: var(--txt-2); }
-.state-sub { font-size: 0.68rem; color: var(--txt-3); max-width: 240px; line-height: 1.45; }
+/* Fila del próximo estreno */
+.card-next {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.61rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.card-next svg {
+  flex-shrink: 0;
+}
+
+.card-next.unknown {
+  color: var(--txt-3);
+}
+.card-next.unknown svg {
+  color: var(--txt-3);
+}
+
+/* Tags de género */
+.card-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.tag {
+  font-size: 0.56rem;
+  font-weight: 600;
+  color: var(--tag-txt);
+  background: var(--tag-bg);
+  border-radius: var(--radius-pill);
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+/* ================================================================
+   ESTADOS — carga / error / vacío
+   ================================================================ */
+.state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  gap: 8px;
+  text-align: center;
+}
+
+.state svg { width: 26px; height: 26px; color: var(--txt-3); }
+.state-title { font-size: 0.8rem; font-weight: 600; color: var(--txt-2); }
+.state-sub { font-size: 0.67rem; color: var(--txt-3); max-width: 230px; line-height: 1.45; }
 
 .retry-btn {
-  font-family: 'Outfit', system-ui, sans-serif; font-size: 0.68rem; font-weight: 600;
-  color: #fff; background: var(--blue); border: none; border-radius: 5px;
-  padding: 5px 16px; cursor: pointer; margin-top: 4px; transition: background 0.13s;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 5px;
+  padding: 5px 15px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.13s;
 }
-.retry-btn:hover { background: var(--blue-dim); }
+.retry-btn:hover { background: var(--accent-dim); }
 
-.spinner { width: 26px; height: 26px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
+/* Spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* SKELETONS */
+/* ================================================================
+   SKELETONS
+   ================================================================ */
 .sk-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; }
 .sk-poster { width: 100%; aspect-ratio: 2 / 3; }
-.sk-body { padding: 8px 9px; display: flex; flex-direction: column; gap: 5px; }
-.sk-poster, .sk-line { background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-.sk-line { height: 8px; border-radius: 4px; }
-.sk-line.w80 { width: 80%; } .sk-line.w55 { width: 55%; } .sk-line.w40 { width: 40%; }
+.sk-body { padding: 7px 8px; display: flex; flex-direction: column; gap: 5px; }
+
+.sk-poster, .sk-line {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.sk-line { height: 7px; border-radius: 4px; }
+.sk-line.w80 { width: 80%; }
+.sk-line.w60 { width: 60%; }
+.sk-line.w45 { width: 45%; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-/* FOOTER */
-.footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; flex-wrap: wrap; gap: 4px; }
-.footer-src { font-size: 0.62rem; color: var(--txt-3); }
-.footer-src a { color: var(--blue); text-decoration: none; font-weight: 600; }
-.footer-src a:hover { text-decoration: underline; }
-.footer-count { font-size: 0.62rem; font-weight: 500; color: var(--txt-3); }
+/* ================================================================
+   FOOTER
+   ================================================================ */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
 
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.footer-src { font-size: 0.6rem; color: var(--txt-3); }
+.footer-src a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.footer-src a:hover { text-decoration: underline; }
+.footer-count { font-size: 0.6rem; font-weight: 500; color: var(--txt-3); }
+
+/* ================================================================
+   ANIMACIÓN DE ENTRADA
+   ================================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
